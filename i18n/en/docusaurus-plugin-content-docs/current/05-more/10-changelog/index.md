@@ -14,6 +14,7 @@ This page records important changes in each version of DesireCore.
 
 | Version | Date | Summary |
 |---------|------|---------|
+| [v10.0.47](./v10.0.47) | 2026-05-06 | Browser automation capabilities (web-access v2.0)、Site experience accumulatio... |
 | [v10.0.46](./v10.0.46) | 2026-05-05 | Multilingual UI support、Export Skills individually、Multilingual display for m... |
 | [v10.0.45](./v10.0.45) | 2026-05-03 | Independent heartbeat check management、Virtualized message lists for long con... |
 | [v10.0.44](./v10.0.44) | 2026-05-01 | 改进：Desktop runtime environment upgrade |
