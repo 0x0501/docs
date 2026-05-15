@@ -14,6 +14,7 @@ This page records important changes in each version of DesireCore.
 
 | Version | Date | Summary |
 |---------|------|---------|
+| [v10.0.60](./v10.0.60) | 2026-05-15 | 修复：Fixed an issue on Windows where users might see a “Unable to uninstall old... |
 | [v10.0.59](./v10.0.59) | 2026-05-15 | Immersive Voice Interaction、AI Next Message Prediction、/steer Runtime Guidanc... |
 | [v10.0.58](./v10.0.58) | 2026-05-14 | 修复：Fixed an issue on Windows where automatic updates could sometimes fail wit... |
 | [v10.0.57](./v10.0.57) | 2026-05-14 | 修复：Fixed an issue on Windows where upgrades to DesireCore could fail for some... |
