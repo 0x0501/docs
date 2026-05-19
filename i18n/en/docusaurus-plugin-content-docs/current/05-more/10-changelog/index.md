@@ -14,6 +14,7 @@ This page records important changes in each version of DesireCore.
 
 | Version | Date | Summary |
 |---------|------|---------|
+| [v10.0.65](./v10.0.65) | 2026-05-19 | Chat formula rendering，修复 2 项问题，改进 1 项 |
 | [v10.0.64](./v10.0.64) | 2026-05-19 | Enhanced PDF Reading，修复 2 项问题，改进 2 项 |
 | [v10.0.63](./v10.0.63) | 2026-05-19 | 修复：When using models with vision capabilities, the Agent can now correctly re... |
 | [v10.0.62](./v10.0.62) | 2026-05-19 | 修复：Fixed an issue where the Agent failed to keep the cloud version when handl... |
