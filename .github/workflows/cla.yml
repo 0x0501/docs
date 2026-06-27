@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   cla-check:
-    runs-on: lightweight
+    runs-on: ubuntu-latest
     steps:
       - name: Check CLA agreement
         uses: actions/github-script@v7
