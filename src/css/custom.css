@@ -132,12 +132,20 @@ html[data-theme="dark"] {
    ============================================================ */
 
 .navbar {
-  background: var(--dc-glass-navbar);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
+  background: transparent;
   border-bottom: 1px solid var(--dc-glass-border);
   box-shadow: none;
   transition: background var(--dc-duration-normal) var(--dc-ease-expo);
+}
+
+.navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--dc-glass-navbar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
 }
 
 .navbar__link,
@@ -156,9 +164,32 @@ html[data-theme="dark"] {
 
 /* Mobile sidebar overlay */
 .navbar-sidebar {
-  background: var(--dc-glass-navbar);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  backdrop-filter: saturate(180%) blur(24px);
+  background: #ffffff;
+  /* Pin opacity at 1 and drop it from the transition — the slide is carried by
+     transform, so there is no alpha animation left to strand. The drawer is
+     still fully hidden when closed via Infima's visibility:hidden +
+     translate3d(-100%). */
+  opacity: 1;
+  transition-property: transform, visibility;
+  /* Persistent compositing layer (DOM is always mounted via the swizzle) so
+     opening never creates a layer mid-transition; explicit order above the
+     fixed backdrop sibling. */
+  will-change: transform;
+  z-index: 1;
+}
+
+html[data-theme="dark"] .navbar-sidebar {
+  background: #1c1c1e;
+}
+
+.navbar.navbar-sidebar--show::before {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: #ffffff;
+}
+
+html[data-theme="dark"] .navbar.navbar-sidebar--show::before {
+  background: #1c1c1e;
 }
 
 /*
