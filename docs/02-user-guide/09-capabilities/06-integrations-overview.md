@@ -23,7 +23,7 @@ DesireCore 不是一个封闭系统。它通过多层集成架构连接外部世
 | **技能包** | 把多个工具编排成专业工作流 | [技能包](./skill-packs) |
 | **Computer Use** | 通过 HostAgent 操控桌面和移动设备的 GUI | [GUI 桌面自动化](./computer-use) |
 | **邮件** | 统一管理 Gmail / Outlook / IMAP 邮箱 | [邮件管理](../email/overview) |
-| **工作流** | 用可视化 DSL 编排触发器、代码、LLM、Agent 和人工确认节点 | [任务编排](../../04-concepts/10-task-orchestration.md) |
+| **工作流** | 用可视化 DSL 编排触发器、代码、LLM、Agent 和人工确认节点 | [任务编排](../../concepts/task-orchestration) |
 
 :::tip 一句话理解
 内置工具是"出厂能力"，MCP 是"扩展接口"，技能包是"工作流模板"，Computer Use 是"万能后备"——四者互补，覆盖几乎所有场景。
