@@ -46,10 +46,7 @@ Click **Save** after modifying the name to take effect.
 DesireCore supports usage without login, all core functions are fully available in guest mode.
 
 - **Guest Mode**: Data saved locally, no account registration needed
-- **Logged-in User**: Future login will allow data sync to cloud (feature in development)
-
-:::info
-Login is available for account-related capabilities such as official cloud compute, subscriptions, credits, account profile, and selected online services. Core local workflows still work without signing in.
+- **Logged-in User**: Access official cloud compute, subscriptions, credits, account profile, and selected online services
 
 ## Sign Up and Sign In
 
@@ -65,4 +62,7 @@ After signing in, DesireCore can sync account resources such as:
 ## Sign Out
 
 Signing out clears the local cloud-provider session state so expired tokens are not reused. It does not delete your local conversations, agents, files, or custom API keys.
+
+:::info Local-first
+Login only affects account, subscription, and cloud compute capabilities. Your core data remains stored on your local device.
 :::
