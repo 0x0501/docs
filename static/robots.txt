@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://docs.desirecore.com/sitemap.xml
+Sitemap: https://docs.desirecore.com/en/sitemap.xml

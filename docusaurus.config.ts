@@ -59,6 +59,15 @@ const config: Config = {
           sidebarCollapsed: true,
         },
         blog: false,
+        sitemap: {
+          // Search results are intentionally noindex and must not be advertised.
+          ignorePatterns: ['**/search'],
+          // Derive meaningful modification dates from each document's Git history.
+          lastmod: 'date',
+          // Google ignores these hints; omit identical values on every URL.
+          changefreq: null,
+          priority: null,
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
