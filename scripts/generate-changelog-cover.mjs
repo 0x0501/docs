@@ -12,6 +12,7 @@
  *   AI_API_KEY  — AI 网关 API Key（Bearer 鉴权）
  *   IMAGE_MODEL — 图像模型名（默认 image-2；与文本模型 AI_MODEL 区分）
  *   IMAGE_SIZE  — 请求生成尺寸（默认 2848x1600，与输出一致；最终都会 resize 到 2848×1600）
+ *   IMAGE_BG_FILE — 本地背景图路径（设置后跳过 AI 生成直接使用，无需 API Key；用于本地调试文字排版）
  *
  * 用法：
  *   AI_BASE_URL=https://your-gateway AI_API_KEY=xxx \
@@ -351,10 +352,10 @@ function buildTextOverlay(version, sections, lang = 'zh') {
   //  Phase 1: 收集数据
   // ════════════════════════════════════════════
 
-  const col1Items = features.length > 0
+  let col1Items = features.length > 0
     ? features
     : fixes.length > 0 ? [L.fallbackFeat(fixes.length)] : [L.fallbackDefault]
-  const col2Items = improvements
+  let col2Items = improvements
   const twoColumn = col2Items.length > 0
 
   const stats = []
@@ -377,20 +378,25 @@ function buildTextOverlay(version, sections, lang = 'zh') {
   const usableW = readableEdge - padLeft
 
   // ── 2a. 统计总内容量，驱动所有尺寸 ──
-  const maxMainRows = Math.max(col1Items.length, twoColumn ? col2Items.length : 0)
+  let maxMainRows = Math.max(col1Items.length, twoColumn ? col2Items.length : 0)
   const totalItems = col1Items.length + col2Items.length + fixes.length
 
-  // 内容密度：sparse(≤8) / normal(9-16) / dense(17+)
-  const density = totalItems <= 8 ? 'sparse' : totalItems <= 16 ? 'normal' : 'dense'
+  // 内容密度：sparse(≤8) / normal(9-16) / dense(17-44) / ultra(45+ 或单列超 24 行)
+  // ultra 档为超大版本（如 v10.0.83：32 新功能 + 18 改进 + 57 修复）压缩头部与行距，
+  // 尽量完整展示条目；仍放不下的由 2d' 的行数硬截断折叠兜底，绝不溢出画布
+  const density = totalItems <= 8 ? 'sparse'
+    : totalItems <= 16 ? 'normal'
+    : (totalItems <= 44 && maxMainRows <= 24) ? 'dense'
+    : 'ultra'
 
   // ── 2b. 头部尺寸（随密度缩放）──
-  const versionFontSize = { sparse: 140, normal: 110, dense: 88 }[density]
-  const padTop = { sparse: 120, normal: 80, dense: 60 }[density]
+  const versionFontSize = { sparse: 140, normal: 110, dense: 88, ultra: 76 }[density]
+  const padTop = { sparse: 120, normal: 80, dense: 60, ultra: 48 }[density]
   const brandGap = 12                                   // DESIRECORE → 版本号间距
-  const brandFontSize = { sparse: 40, normal: 36, dense: 36 }[density]
-  const postVersionGap = { sparse: 45, normal: 35, dense: 28 }[density]  // 版本号 → 强调线
-  const postAccentGap = { sparse: 75, normal: 70, dense: 68 }[density]   // 强调线 → 栏标签
-  const postLabelGap = { sparse: 58, normal: 54, dense: 52 }[density]    // 栏标签 → 列表首行
+  const brandFontSize = { sparse: 40, normal: 36, dense: 36, ultra: 32 }[density]
+  const postVersionGap = { sparse: 45, normal: 35, dense: 28, ultra: 24 }[density]  // 版本号 → 强调线
+  const postAccentGap = { sparse: 75, normal: 70, dense: 68, ultra: 60 }[density]   // 强调线 → 栏标签
+  const postLabelGap = { sparse: 58, normal: 54, dense: 52, ultra: 46 }[density]    // 栏标签 → 列表首行
 
   const brandY = padTop + brandFontSize
   const versionY = brandY + brandGap + versionFontSize
@@ -405,9 +411,25 @@ function buildTextOverlay(version, sections, lang = 'zh') {
 
   // ── 2d. 列表字号（随密度选择）──
   const fontSize = twoColumn
-    ? { sparse: 46, normal: 42, dense: 38 }[density]
-    : { sparse: 48, normal: 44, dense: 40 }[density]
+    ? { sparse: 46, normal: 42, dense: 38, ultra: 32 }[density]
+    : { sparse: 48, normal: 44, dense: 40, ultra: 34 }[density]
   const fixFontSize = Math.round(fontSize * 0.8)
+
+  // ── 2d'. 主列表行数硬截断：按最小行距算出可容纳行数，放不下的尾部折叠为汇总行 ──
+  // （这是防溢出的最终兜底：density 只缩放尺寸、不减少行数，条目再多也不能画出画布）
+  const minMainGap = { sparse: 56, normal: 48, dense: 42, ultra: 36 }[density]
+  const maxMainGap = { sparse: 80, normal: 68, dense: 56, ultra: 46 }[density]
+  const maxRowsFit = Math.max(3, Math.floor(listAreaH / minMainGap))
+  const foldLabel = n => lang === 'en' ? `+${n} more` : `…等 ${n} 项`
+  if (col1Items.length > maxRowsFit) {
+    const hidden = col1Items.length - (maxRowsFit - 1)
+    col1Items = [...col1Items.slice(0, maxRowsFit - 1), foldLabel(hidden)]
+  }
+  if (col2Items.length > maxRowsFit) {
+    const hidden = col2Items.length - (maxRowsFit - 1)
+    col2Items = [...col2Items.slice(0, maxRowsFit - 1), foldLabel(hidden)]
+  }
+  maxMainRows = Math.max(col1Items.length, twoColumn ? col2Items.length : 0)
 
   // ── 2e. 测量文字宽度 → 列位置 ──
   let col1TextW, col2X, col2TextW
@@ -423,11 +445,9 @@ function buildTextOverlay(version, sections, lang = 'zh') {
   }
 
   // ── 2f. 垂直分配：主列表 → 修复区 ──
-  const minMainGap = { sparse: 56, normal: 48, dense: 42 }[density]
-  const maxMainGap = { sparse: 80, normal: 68, dense: 56 }[density]
   const fixSectionH = 90                             // 修复标签 + 标签到列表间距
-  const minFixGap = { sparse: 44, normal: 38, dense: 34 }[density]
-  const maxFixGap = { sparse: 56, normal: 48, dense: 42 }[density]
+  const minFixGap = { sparse: 44, normal: 38, dense: 34, ultra: 30 }[density]
+  const maxFixGap = { sparse: 56, normal: 48, dense: 42, ultra: 36 }[density]
 
   let fixItems = []
   let mainGap, fixGap, fixStartY
@@ -610,7 +630,8 @@ function insertImageRef(content, version, imgPath) {
 
 async function main() {
   const { version, force } = parseArgs()
-  const apiKey = checkApiKey()
+  const bgFile = process.env.IMAGE_BG_FILE
+  const apiKey = bgFile ? null : checkApiKey()
 
   const zhMdFile = resolve(CHANGELOG_DIR_ZH, `${version}.md`)
   const enMdFile = resolve(CHANGELOG_DIR_EN, `${version}.md`)
@@ -653,9 +674,19 @@ async function main() {
   console.log(`  日期: ${zhSections.date}\n`)
 
   // 1. 生成 AI 背景图（基于中文内容生成 prompt，中英文共享同一背景）
-  const bgPrompt = buildBgPrompt(version, zhSections)
-  const bgBuffer = await generateBgImage(bgPrompt, apiKey)
-  console.log(`背景图已生成 (${(bgBuffer.length / 1024 / 1024).toFixed(1)} MB)`)
+  //    设置 IMAGE_BG_FILE 时改用本地文件，跳过 AI 调用（本地调试排版用）
+  let bgBuffer
+  if (bgFile) {
+    console.log(`使用本地背景图（跳过 AI 生成）: ${bgFile}`)
+    bgBuffer = await sharp(readFileSync(bgFile))
+      .resize(WIDTH, HEIGHT, { fit: 'fill' })
+      .png()
+      .toBuffer()
+  } else {
+    const bgPrompt = buildBgPrompt(version, zhSections)
+    bgBuffer = await generateBgImage(bgPrompt, apiKey)
+    console.log(`背景图已生成 (${(bgBuffer.length / 1024 / 1024).toFixed(1)} MB)`)
+  }
 
   mkdirSync(IMG_DIR, { recursive: true })
 
